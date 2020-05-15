@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeModal = document.querySelector('#closeModal');
   const questionTitle = document.querySelector('#question');
   const formAnswers = document.querySelector('#formAnswers');
+  const burgerName = 'Стандарт';
+  const burgerImageSrc = './image/burger.png';
 
 
   btnOpenModal.addEventListener('click', () => {
@@ -24,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="answers-item d-flex flex-column">
           <input type="radio" id="answerItem1" name="answer" class="d-none">
           <label for="answerItem1" class="d-flex flex-column justify-content-between">
-            <img class="answerImg" src="./image/burger.png" alt="burger">
-            <span>Стандарт</span>
+            <img class="answerImg" src="${burgerImageSrc}" alt="burger">
+            <span>${burgerName}</span>
           </label>
         </div>
       `;
