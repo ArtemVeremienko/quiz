@@ -106,6 +106,7 @@ label span {
     flex-direction: column;
     justify-content: space-between;
     border: none;
+    background-color: transparent;
 }
 
 .burger span {
@@ -114,4 +115,15 @@ label span {
     display: block;
     background-color: #3cb371;
     border: 2px solid #000;
+    transition: transform 0.3s;
+}
+
+.burger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(9px, 9px);
+}
+.burger.active span:nth-child(2) {
+    transform: rotate(45deg);
+}
+.burger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(9px, -9px);
 }
