@@ -1,13 +1,33 @@
 'use strict';
 
+// Обработчик который отслеживает загрузку контента HTML
 document.addEventListener('DOMContentLoaded', () => {
-  const btnOpenModal = document.querySelector('#btnOpenModal');
-  const modalWrap = document.querySelector('.modal');
-  const modalBlock = document.querySelector('#modalBlock');
-  const closeModal = document.querySelector('#closeModal');
-  const questionTitle = document.querySelector('#question');
-  const formAnswers = document.querySelector('#formAnswers');
-  const burgerBtn = document.getElementById('burger');
+  const btnOpenModal = document.querySelector('#btnOpenModal'),
+    modalWrap = document.querySelector('.modal'),
+    modalBlock = document.querySelector('#modalBlock'),
+    closeModal = document.querySelector('#closeModal'),
+    questionTitle = document.querySelector('#question'),
+    formAnswers = document.querySelector('#formAnswers'),
+    burgerBtn = document.getElementById('burger'),
+    nextButton = document.getElementById('next'),
+    prevButton = document.getElementById('prev'),
+    sendButton = document.getElementById('send'),
+    modalDialog = document.querySelector('.modal-dialog'),
+    modalTitle = document.querySelector('.modal-title');
+
+  const questions = {
+    question: 'Какого цвета бургер вы хотите?',
+    answers: [
+      {
+        title: 'Стандарт',
+        url: './image/burger.png'
+      },
+      {
+        title: 'Чёрный',
+        url: './image/burgerBlack.png'
+      }
+    ]
+  };
 
   let clientWidth = document.documentElement.clientWidth;
 
@@ -54,19 +74,35 @@ document.addEventListener('DOMContentLoaded', () => {
       const burgerName = 'Стандарт';
       const burgerImageSrc = './image/burger.png';
 
-      questionTitle.textContent = 'Какого цвета бургер вы хотите?';
+      questionTitle.textContent = questions.question;
       formAnswers.innerHTML = `
         <div class="answers-item d-flex flex-column">
           <input type="radio" id="answerItem1" name="answer" class="d-none">
           <label for="answerItem1" class="d-flex flex-column justify-content-between">
-            <img class="answerImg" src="${burgerImageSrc}" alt="burger">
-            <span>${burgerName}</span>
+            <img class="answerImg" src="${questions.answers[0].url}" alt="burger">
+            <span>${questions.answers[0].title}</span>
           </label>
         </div>
       `;
     };
 
     renderQuestions();
+  };
+
+  const renderQuestions = (indexQuestion) => {
+    formAnswers.innerHTML = '';
+    questionTitle.textContent = `${questions[indexQuestion].question}`;
+    renderAnswers(indexQuestion);
+  }
+
+  nextButton.onclick = () => {
+    numberQuestion++;
+    renderQuestions(numberQuestion);
+  };
+
+  prevButton.onclick = () => {
+    numberQuestion--;
+    renderQuestions(numberQuestion);
   };
 })
 
