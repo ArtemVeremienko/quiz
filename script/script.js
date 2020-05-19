@@ -29,20 +29,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
 
-  const questions = {
-    question: 'Какого цвета бургер вы хотите?',
-    answers: [
-      {
-        title: 'Стандарт',
-        url: './image/burger.png'
-      },
-      {
-        title: 'Чёрный',
-        url: './image/burgerBlack.png'
-      }
-    ]
+  const getData = () => {
+    formAnswers.innerHTML = loader;
+    // вызов файла json с сайта firebase
+    firebase.database().ref().child('questions').once('value')
+      .then(snap => playTest(snap.val()));
   };
 
+  // скинер лоадера с стороннего сайта
+  let loader = `
+    <style type="text/css">#hellopreloader>p{display:none;}#hellopreloader_preload{display: block;position: fixed;z-index: 99999;top: 0;left: 0;width: 100%;height: 100%;min-width: 1000px;background: #E4F1FE url(http://hello-site.ru//main/images/preloads/puff.svg) center center no-repeat;background-size:100px;}</style>
+    <div id="hellopreloader_preload"></div><p><a href="http://hello-site.ru">Hello-Site.ru. Бесплатный конструктор сайтов.</a></p>
+  `;
+
+  // анимация модалки
+  let count = -100;
+  modalDialog.style.top = count + '%';
+
+  const animateModal = () => {
+    modalDialog.style.top = count + '%';
+    count += 3;
+
+    if (count < 0) {
+      requestAnimationFrame(animateModal);
+    } else {
+      count = -100;
+    }
+  };
+
+  // адаптивность через значение clientWidth
   let clientWidth = document.documentElement.clientWidth;
 
   const showBurger = () => {
@@ -61,63 +76,153 @@ document.addEventListener('DOMContentLoaded', () => {
     showBurger();
   });
 
-  burgerBtn.addEventListener('click', () => {
-    burgerBtn.classList.toggle('active');
+  const showModal = () => {
+    requestAnimationFrame(animateModal); // вызов анимации моадлки
+    prevButton.classList.remove('d-none');
+    nextButton.classList.remove('d-none');
     modalBlock.classList.add('d-block');
-    playTest();
-  });
+    getData();
+  };
 
-  btnOpenModal.addEventListener('click', () => {
-    modalBlock.classList.add('d-block');
-    playTest();
-  });
+  // кнопка бургер меню
+  burgerBtn.addEventListener('click', showModal);
+
+  // обработчики события открытий/закрытий модального окна
+  btnOpenModal.addEventListener('click', showModal);
 
   closeModal.addEventListener('click', () => {
     modalBlock.classList.remove('d-block');
     burgerBtn.classList.remove('active');
   });
 
+  // клик на пустом месте закрывает форму
   modalWrap.addEventListener('click', (e) => {
     if (!e.target.querySelector('.modal-dialog')) return;
     modalBlock.classList.remove('d-block');
     burgerBtn.classList.remove('active');
   });
 
-  const playTest = () => {
-    const renderQuestions = () => {
-      const burgerName = 'Стандарт';
-      const burgerImageSrc = './image/burger.png';
+  const playTest = (questions) => {
 
-      questionTitle.textContent = questions.question;
-      formAnswers.innerHTML = `
-        <div class="answers-item d-flex flex-column">
-          <input type="radio" id="answerItem1" name="answer" class="d-none">
-          <label for="answerItem1" class="d-flex flex-column justify-content-between">
-            <img class="answerImg" src="${questions.answers[0].url}" alt="burger">
-            <span>${questions.answers[0].title}</span>
+    const finalAnswers = [];
+    const obj = {};
+
+    let numberQuestion = 0;
+    modalTitle.textContent = 'Ответь на вопрос';
+
+    // рендеринг ответов и динамический вывод на страницу
+    const renderAnswers = (index) => {
+      // карточка вопроса, проходим циклом по массиву и выводим в верстку
+      questions[index].answers.forEach(answer => {
+        const answerItem = document.createElement('div');
+        answerItem.classList.add('answers-item', 'd-flex', 'justify-content-center');
+        answerItem.innerHTML = `
+          <input type="${questions[index].type}" id="${answer.title}" name="answer" class="d-none" value="${answer.title}">
+          <label for="${answer.title}" class="d-flex flex-column justify-content-between">
+            <img class="answerImg" src="${answer.url}" alt="burger">
+            <span>${answer.title}</span>
           </label>
-        </div>
-      `;
+        `;
+        formAnswers.appendChild(answerItem);
+      })
     };
 
-    renderQuestions();
-  };
+    // собирает карточку вопроса
+    const renderQuestions = (indexQuestion) => {
+      formAnswers.innerHTML = '';
+      // проверяем на количество и делаем кнопки next/prev неактивными
+      switch (true) {
+        case (numberQuestion === 0):
+          renderAnswers(indexQuestion);
+          prevButton.disabled = 'true';
+          break;
 
-  const renderQuestions = (indexQuestion) => {
-    formAnswers.innerHTML = '';
-    questionTitle.textContent = `${questions[indexQuestion].question}`;
-    renderAnswers(indexQuestion);
-  }
+        case (numberQuestion >= 0 && numberQuestion <= questions.length - 1):
+          renderAnswers(indexQuestion);
+          questionTitle.textContent = `${questions[indexQuestion].question}`;
+          prevButton.disabled = '';
+          nextButton.disabled = '';
+          sendButton.classList.add('d-none');
+          break;
 
-  nextButton.onclick = () => {
-    numberQuestion++;
+        case (numberQuestion === questions.length):
+          prevButton.classList.add('d-none');
+          nextButton.classList.add('d-none');
+          sendButton.classList.remove('d-none');
+          modalTitle.textContent = '';
+          questionTitle.textContent = '';
+          formAnswers.innerHTML = `
+            <div class="form-group">
+              <label for = "numberPhone"> Enter your number </label>
+              <input type="phone" class="form-control" id="numberPhone" placeholder="Phone number">
+					  </div>	
+          `;
+          // запрет на ввод в строку телефона других символов кроме цифр и +-
+          const numberPhone = document.getElementById('numberPhone');
+          numberPhone.addEventListener('input', e => {
+            e.target.value = e.target.value.replace(/[^0-9+-]/, ''); // регулярное выражение
+          });
+          break;
+
+        case (numberQuestion === questions.length + 1): // страница благодарности
+          formAnswers.textContent = 'Спасибо за пройденный тест!';
+          prevButton.classList.add('d-none');
+          nextButton.classList.add('d-none');
+          for (let key in obj) {
+            let newObj = {};
+            newObj[key] = obj[key];
+            finalAnswers.push(newObj);
+          }
+          setTimeout(() => {
+            modalBlock.classList.remove('d-block');
+            burgerBtn.classList.remove('active');
+            prevButton.disabled = '';
+            nextButton.disabled = '';
+          }, 2000);
+          sendButton.classList.add('d-none');
+          break;
+      }
+    };
+
+    // запуск рендеринга
     renderQuestions(numberQuestion);
-  };
 
-  prevButton.onclick = () => {
-    numberQuestion--;
-    renderQuestions(numberQuestion);
-  };
-})
+    const checkAnswer = () => {
+      const inputs = [...formAnswers.elements].filter(input => input.checked || input.id === 'numberPhone');
 
+      inputs.forEach((input, index) => {
+        if (numberQuestion >= 0 && numberQuestion <= questions.length - 1) {
+          obj[index + "_" + questions[numberQuestion].question] = input.value;
+        }
+        if (numberQuestion === questions.length) {
+          obj['Номер телефона'] = input.value;
+        }
+      });
+    };
+
+    // обработчики событий кнопок next и prev
+    nextButton.onclick = () => {
+      checkAnswer();
+      numberQuestion++;
+      renderQuestions(numberQuestion);
+    };
+
+    prevButton.onclick = () => {
+      numberQuestion--;
+      renderQuestions(numberQuestion);
+    };
+
+    sendButton.onclick = () => {
+      checkAnswer();
+      numberQuestion++;
+      renderQuestions(numberQuestion);
+      // по клику на кнопку обращаемся к firebase серверу для получения json данных
+      firebase
+        .database()
+        .ref()
+        .child('contacts')
+        .push(finalAnswers);
+    };
+  };
+});
 
