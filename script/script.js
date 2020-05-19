@@ -15,6 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
     modalDialog = document.querySelector('.modal-dialog'),
     modalTitle = document.querySelector('.modal-title');
 
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSR9TRUwB9q7aZZpUv-F7A_E4mP3mKspo",
+    authDomain: "burger-quiz-22ce8.firebaseapp.com",
+    databaseURL: "https://burger-quiz-22ce8.firebaseio.com",
+    projectId: "burger-quiz-22ce8",
+    storageBucket: "burger-quiz-22ce8.appspot.com",
+    messagingSenderId: "657537253325",
+    appId: "1:657537253325:web:848c8e9ff7e92ba756ce84",
+    measurementId: "G-C1J3LS26HV"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
   const questions = {
     question: 'Какого цвета бургер вы хотите?',
     answers: [
